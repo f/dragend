@@ -876,8 +876,8 @@
   }
 
   if ( typeof define == 'function' && typeof define.amd == 'object' && define.amd ) {
-      define(function() {
-        return init( win.jQuery || win.Zepto );
+      define(['zepto'], function(zepto) {
+        return init(  zepto || win.jQuery || win.Zepto );
       });
   } else {
       win.Dragend = init( win.jQuery || win.Zepto );
