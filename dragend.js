@@ -296,6 +296,11 @@
       }
     }
 
+    function swipeDirection(x1, x2, y1, y2) {
+      return Math.abs(x1 - x2) >=
+        Math.abs(y1 - y2) ? (x1 - x2 > 0 ? 'left' : 'right') : (y1 - y2 > 0 ? 'up' : 'down');
+    }
+
     extend(Dragend.prototype, {
 
       // Private functions
@@ -387,19 +392,34 @@
 
         this.settings.onDragStart.call( this, event );
 
+        this.lastX = event.touches[0].pageX;
+        this.lastY = event.touches[0].pageY;
+
       },
 
       _onMove: function( event ) {
+
+        this.lastX = this.lastX || [];
+        this.lastY = this.lastY || [];
 
         event = event.originalEvent || event;
 
         // ensure swiping with one touch and not pinching
         if ( event.touches && event.touches.length > 1 || event.scale && event.scale !== 1) return;
 
-        // event.preventDefault();
-        // if (this.settings.stopPropagation) {
-        //   event.stopPropagation();
-        // }
+        var touch = event.touches[0],
+            x1 = touch.pageX,
+            y1 = touch.pageY,
+            direction = swipeDirection(x1, this.lastX, y1, this.lastY);
+
+        if (direction === 'up' || direction === 'down') {
+          return;
+        }
+
+        event.preventDefault();
+        if (this.settings.stopPropagation) {
+          event.stopPropagation();
+        }
 
         var parsedEvent = this._parseEvent(event),
             coordinates = this._checkOverscroll( parsedEvent.direction , - parsedEvent.distanceX, - parsedEvent.distanceY );
@@ -409,6 +429,7 @@
         if ( !this.preventScroll ) {
           this._scroll( coordinates );
         }
+
       },
 
       _onEnd: function( event ) {
@@ -804,7 +825,7 @@
           this.scrollToPage( this.settings.scrollToPage );
           delete this.settings.scrollToPage;
         }
-		
+    
         if (this.settings.destroy) {
           this.destroy();
           delete this.settings.destroy;
@@ -877,7 +898,7 @@
 
   if ( typeof define == 'function' && typeof define.amd == 'object' && define.amd ) {
       define(['zepto'], function(zepto) {
-        return init(  zepto || win.jQuery || win.Zepto );
+        return init( zepto || win.jQuery || win.Zepto );
       });
   } else {
       win.Dragend = init( win.jQuery || win.Zepto );
